@@ -13,14 +13,19 @@ const mouse = {
 
 const colors = ["#2185C5", "#7ECEFD", "#FFF6E5", "#FF7F66"];
 
+var gravity = 1;
+var friction = 0.9;
 // Objects
 class Ball {
-  constructor(x, y, dy, radius, color) {
+  constructor(x, y, dx, dy, radius, color) {
     this.x = x;
     this.y = y;
+    this.dx = dx;
     this.dy = dy;
+
     this.radius = radius;
     this.color = color;
+    this.gravity = 1;
   }
 
   draw() {
@@ -28,29 +33,49 @@ class Ball {
     c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
     c.fillStyle = this.color;
     c.fill();
+    c.stroke();
     c.closePath();
   }
 
   update() {
     //hits the bottom
-    if (this.y + this.radius > canvas.height) {
-      this.dy = -this.dy;
+    if (this.y + this.radius + this.dy > canvas.height) {
+      //We need to make sure our ball velocity decreases each time it hits the ground
+      //this friction will lead to stop the ball at a time
+      this.dy = -this.dy * friction;
     } else {
-      //increase acceleration by +1;
-      this.dy += 1;
+      //increase change in speed or gravity (not exactly but give us the illusion)
+      this.dy += gravity;
     }
+    if (
+      this.x + this.radius + 3 * this.dx > canvas.width ||
+      this.x - this.radius < 0
+    ) {
+      this.dx = -this.dx;
+    }
+    //velocity
     this.y += this.dy;
+    this.x += this.dx;
+
     this.draw();
   }
 }
 
 // Implementation
 let balls;
+
 function init() {
+  //while resizing a new array will form everytime : )
   balls = [];
 
-  for (let i = 0; i < 1; i++) {
-    balls.push(new Ball(canvas.width / 2, Math.random() * 1000, 1, 10, "red"));
+  for (let i = 0; i < 40; i++) {
+    var radius = utils.randomIntFromRange(10, 20);
+    var x = utils.randomIntFromRange(10, canvas.width - radius);
+    var y = utils.randomIntFromRange(10, canvas.height - radius);
+    var dx = utils.randomIntFromRange(-2, 2);
+    var dy = utils.randomIntFromRange(-2, 2);
+    var color = utils.randomColor(colors);
+    balls.push(new Ball(x, y, dx, dy, radius, color));
   }
 }
 
@@ -78,5 +103,10 @@ addEventListener("resize", () => {
   canvas.width = innerWidth;
   canvas.height = innerHeight;
 
+  init();
+});
+
+//Mobile Event listenre
+addEventListener("click", () => {
   init();
 });
